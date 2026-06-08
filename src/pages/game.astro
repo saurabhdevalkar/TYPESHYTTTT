@@ -1,0 +1,1305 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+// SEO Title & Description for the game
+const title = "Spaceship Typing Battle - Arcade Typing Game | TypeSHYTT.COM.";
+const description =
+  "Defend the galaxy by typing! A full-screen minimalist arcade space battle where enemies are destroyed by typing words. Fight meteors, fire lasers, and set high scores.";
+---
+
+<Layout title={title} description={description} fullscreen={true}>
+  <!-- Full Screen Game Layout -->
+  <div
+    class="relative w-full h-screen overflow-hidden bg-black text-white flex flex-col justify-between select-none"
+  >
+    <!-- Header overlay with scores, exit, and health -->
+    <div
+      class="absolute top-0 left-0 right-0 p-6 flex items-center justify-between z-10 font-mono select-none pointer-events-none"
+    >
+      <!-- Top Left: Score & Multiplier -->
+      <div
+        class="flex items-center space-x-6 bg-black/60 backdrop-blur-md px-4 py-2 border border-white/10 rounded-sm"
+      >
+        <div>
+          <span class="text-xs text-white/50 block">SCORE</span>
+          <span id="game-score" class="text-xl font-bold tracking-wider"
+            >000,000</span
+          >
+        </div>
+        <div class="h-6 w-px bg-white/10"></div>
+        <div>
+          <span class="text-xs text-white/50 block">MULTIPLIER</span>
+          <span id="game-multiplier" class="text-xl font-bold text-cyan"
+            >1.0x</span
+          >
+        </div>
+      </div>
+
+      <!-- Center Exit Button (Allows pointer click) -->
+      <div class="pointer-events-auto">
+        <a
+          href="/"
+          class="flex items-center space-x-2 text-xs font-semibold px-4 py-2 border border-white/10 bg-black/60 backdrop-blur-md rounded-full text-white/70 hover:text-white hover:border-white/30 cursor-pointer transition-all duration-150"
+        >
+          <span>←</span>
+          <span>Exit Game</span>
+        </a>
+      </div>
+
+      <!-- Top Right: Shield & Level -->
+      <div
+        class="flex items-center space-x-6 bg-black/60 backdrop-blur-md px-4 py-2 border border-white/10 rounded-sm"
+      >
+        <div>
+          <span class="text-xs text-white/50 block">WAVE</span>
+          <span
+            id="game-level"
+            class="text-xl font-bold text-highlight-pink block text-right"
+            >01</span
+          >
+        </div>
+        <div class="h-6 w-px bg-white/10"></div>
+        <div>
+          <span class="text-xs text-white/50 block">SHIELD STATUS</span>
+          <div class="flex items-center space-x-1.5 mt-1">
+            <div
+              id="shield-bar-1"
+              class="w-4 h-2.5 bg-cyan border border-cyan/30 rounded-sm transition-colors"
+            >
+            </div>
+            <div
+              id="shield-bar-2"
+              class="w-4 h-2.5 bg-cyan border border-cyan/30 rounded-sm transition-colors"
+            >
+            </div>
+            <div
+              id="shield-bar-3"
+              class="w-4 h-2.5 bg-cyan border border-cyan/30 rounded-sm transition-colors"
+            >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Keyboard SFX Controls -->
+      <div
+        class="pointer-events-auto flex items-center space-x-3 bg-black/60 backdrop-blur-md px-4 py-2 border border-white/10 rounded-sm"
+      >
+        <label class="flex items-center space-x-2 cursor-pointer select-none">
+          <input
+            id="keyboard-sfx-toggle"
+            type="checkbox"
+            class="accent-cyan"
+            checked
+          />
+          <span class="text-[11px] text-white/70 font-mono">SFX</span>
+        </label>
+
+        <div class="flex items-center space-x-2">
+          <span class="text-[11px] text-white/50 font-mono">Vol</span>
+          <input
+            id="keyboard-sfx-volume"
+            type="range"
+            min="0"
+            max="100"
+            value="18"
+            step="1"
+            class="w-28 accent-cyan"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden Typing Capture Input -->
+    <input
+      type="text"
+      id="game-keyboard-capture"
+      class="absolute opacity-0 pointer-events-none"
+      autocomplete="off"
+      autocapitalize="off"
+      autocorrect="off"
+      spellcheck="false"
+    />
+
+    <!-- Game Canvas Viewport -->
+    <canvas id="game-canvas" class="w-full h-full block bg-black"></canvas>
+
+    <!-- Start Overlay (Splash Screen) -->
+    <div
+      id="game-start-overlay"
+      class="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center z-20 px-6 text-center select-none"
+    >
+      <div
+        class="max-w-md w-full border border-white/10 bg-zinc-950 p-8 rounded-lg shadow-2xl relative overflow-hidden"
+      >
+        <!-- Ambient grid backdrop in start card -->
+        <div class="absolute inset-0 opacity-5 mesh-grid pointer-events-none">
+        </div>
+
+        <span
+          class="text-[10px] font-mono uppercase tracking-widest text-cyan font-bold block mb-2"
+          >⚡ SYSTEM BOOT</span
+        >
+        <h2 class="text-3xl font-bold font-sans tracking-tight mb-2">
+          Spaceship Typing Battle.
+        </h2>
+        <p class="text-xs text-zinc-400 font-mono mb-6 leading-relaxed">
+          Meteors carrying code variables are descending. Type the words
+          correctly to lock-on, charge energy, and fire lasers. Every typo
+          weakens your shields!
+        </p>
+
+        <!-- Stats Grid -->
+        <div
+          class="grid grid-cols-2 gap-4 border-y border-white/10 py-4 mb-6 text-left font-mono"
+        >
+          <div>
+            <span class="text-[10px] text-zinc-500 block">PERSONAL BEST</span>
+            <span id="pb-score" class="text-lg font-bold text-white">0</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-zinc-500 block">GAMES PLAYED</span>
+            <span id="pb-played" class="text-lg font-bold text-white">0</span>
+          </div>
+        </div>
+
+        <button
+          id="start-game-btn"
+          class="w-full py-3 bg-white text-black font-semibold rounded-sm hover:bg-zinc-200 transition-colors cursor-pointer text-sm font-sans"
+        >
+          Initialize Mission
+        </button>
+        <p class="text-[10px] text-zinc-500 font-mono mt-3">
+          Or click anywhere & press <kbd
+            class="px-1 py-0.5 bg-zinc-800 rounded border border-white/10 text-[9px]"
+            >Space</kbd
+          > to begin
+        </p>
+      </div>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div
+      id="game-over-overlay"
+      class="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-20 px-6 text-center hidden"
+    >
+      <div
+        class="max-w-md w-full border border-white/10 bg-zinc-950 p-8 rounded-lg shadow-2xl"
+      >
+        <span
+          class="text-[10px] font-mono uppercase tracking-widest text-red-500 font-bold block mb-2"
+          >💥 MISSION TERMINATED</span
+        >
+        <h2 class="text-3xl font-bold font-sans tracking-tight mb-6">
+          Shields Collapsed.
+        </h2>
+
+        <div
+          class="grid grid-cols-2 gap-4 border-y border-white/10 py-4 mb-8 font-mono text-left"
+        >
+          <div>
+            <span class="text-[10px] text-zinc-500 block">FINAL SCORE</span>
+            <span id="final-score" class="text-lg font-bold text-cyan">0</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-zinc-500 block">WAVES SURVIVED</span>
+            <span id="final-level" class="text-lg font-bold text-highlight-pink"
+              >0</span
+            >
+          </div>
+        </div>
+
+        <div class="flex space-x-4">
+          <a
+            href="/"
+            class="flex-1 py-3 border border-white/10 rounded-sm font-semibold text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors text-center text-sm cursor-pointer"
+          >
+            Exit to Base
+          </a>
+          <button
+            id="restart-game-btn"
+            class="flex-1 py-3 bg-white text-black font-semibold rounded-sm hover:bg-zinc-200 transition-colors text-sm cursor-pointer"
+          >
+            Deploy Again
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Game Configuration Parameters
+  const GAME_WORDS: string[] = [
+    "import",
+    "export",
+    "class",
+    "async",
+    "await",
+    "const",
+    "function",
+    "return",
+    "let",
+    "typeof",
+    "promise",
+    "resolve",
+    "reject",
+    "fetch",
+    "document",
+    "window",
+    "canvas",
+    "context",
+    "render",
+    "vector",
+    "particle",
+    "laser",
+    "shield",
+    "score",
+    "meteor",
+    "battle",
+    "arcade",
+    "player",
+    "engine",
+    "system",
+    "thread",
+    "matrix",
+    "modulo",
+    "binary",
+    "hex",
+    "syntax",
+    "editor",
+    "compiler",
+    "source",
+    "config",
+    "react",
+    "state",
+    "effect",
+    "render",
+    "trigger",
+    "layout",
+    "global",
+    "styles",
+    "markup",
+    "anchor",
+  ];
+
+  // Game Entities Definitions
+  class Player {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    shieldMax: number;
+    shield: number;
+    targetAngle: number;
+    currentAngle: number;
+
+    constructor(x: number, y: number) {
+      this.x = x;
+      this.y = y;
+      this.width = 40;
+      this.height = 40;
+      this.shieldMax = 3;
+      this.shield = 3;
+      this.targetAngle = -Math.PI / 2; // Pointing straight up
+      this.currentAngle = -Math.PI / 2;
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.currentAngle + Math.PI / 2); // Rotate offset for ship layout orientation
+
+      // Draw vector-style glowing wireframe spaceship (Vercel-inspired minimal aesthetic)
+      ctx.strokeStyle = "#00dfd8"; // Glowing cyan
+      ctx.shadowColor = "#00dfd8";
+      ctx.shadowBlur = 12;
+      ctx.lineWidth = 2.5;
+
+      ctx.beginPath();
+      ctx.moveTo(0, -this.height / 2); // Nose
+      ctx.lineTo(this.width / 2, this.height / 2); // Right wing tip
+      ctx.lineTo(this.width / 4, this.height / 3); // Right inner body
+      ctx.lineTo(-this.width / 4, this.height / 3); // Left inner body
+      ctx.lineTo(-this.width / 2, this.height / 2); // Left wing tip
+      ctx.closePath();
+      ctx.stroke();
+
+      // Thruster flame glow
+      ctx.strokeStyle = "#ff0080"; // Magenta thruster
+      ctx.shadowColor = "#ff0080";
+      ctx.shadowBlur = 8;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-this.width / 6, this.height / 3);
+      ctx.lineTo(0, this.height / 3 + 10 + Math.random() * 8);
+      ctx.lineTo(this.width / 6, this.height / 3);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    damage(shakeScreen: () => void) {
+      this.shield--;
+      updateShieldUI(this.shield);
+      shakeScreen();
+
+      playPlayerHitSfx();
+
+      // Laser impact effect at ship base
+      createExplosion(this.x, this.y, "#ff4d4d", 8);
+
+      if (this.shield <= 0) {
+        endGame();
+      }
+    }
+  }
+
+  class Enemy {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    word: string;
+    typedLength: number;
+    radius: number;
+    scoreVal: number;
+    size: number;
+    angle: number;
+    spinSpeed: number;
+
+    constructor(x: number, y: number, word: string, speedMultiplier: number) {
+      this.x = x;
+      this.y = y;
+      this.vx = (Math.random() - 0.5) * 0.8;
+      this.vy = (0.5 + Math.random() * 0.5) * speedMultiplier;
+      this.word = word;
+      this.typedLength = 0;
+      this.radius = 28 + word.length * 2;
+      this.scoreVal = word.length * 100;
+      this.size = this.radius;
+      this.angle = Math.random() * Math.PI * 2;
+      this.spinSpeed = (Math.random() - 0.5) * 0.02;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.angle += this.spinSpeed;
+    }
+
+    draw(ctx: CanvasRenderingContext2D, isTargeted: boolean) {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle);
+
+      // Draw wireframe meteor body
+      ctx.lineWidth = isTargeted ? 2.5 : 1.5;
+      ctx.strokeStyle = isTargeted ? "#7928ca" : "#ebebeb"; // Targeted purple, idle hairline white
+      ctx.shadowColor = isTargeted ? "#ff0080" : "transparent";
+      ctx.shadowBlur = isTargeted ? 10 : 0;
+
+      ctx.beginPath();
+      const numPoints = 8;
+      for (let i = 0; i < numPoints; i++) {
+        const theta = (i / numPoints) * Math.PI * 2;
+        // Introduce small radial distortions for meteor feel
+        const offset = 1 + (i % 2 === 0 ? 0.15 : -0.15);
+        const r = this.radius * offset;
+        const px = Math.cos(theta) * r;
+        const py = Math.sin(theta) * r;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.restore();
+
+      // Draw Text Word above the enemy
+      ctx.save();
+      ctx.font = "14px monospace";
+      ctx.textAlign = "center";
+
+      // Draw background tag for readability
+      const textWidth = ctx.measureText(this.word).width;
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+      ctx.fillRect(
+        this.x - (textWidth / 2 + 6),
+        this.y - this.radius - 22,
+        textWidth + 12,
+        18,
+      );
+      ctx.strokeStyle = isTargeted ? "#7928ca" : "rgba(255,255,255,0.1)";
+      ctx.strokeRect(
+        this.x - (textWidth / 2 + 6),
+        this.y - this.radius - 22,
+        textWidth + 12,
+        18,
+      );
+
+      // Render letter segments (highlighting typed part in green)
+      const startX = this.x - textWidth / 2;
+      let offset = 0;
+
+      for (let i = 0; i < this.word.length; i++) {
+        const char = this.word[i];
+        const letterWidth = ctx.measureText(char).width;
+
+        if (i < this.typedLength) {
+          ctx.fillStyle = "#50e3c2"; // Completed bright cyan/mint
+          ctx.font = "bold 14px monospace";
+        } else {
+          ctx.fillStyle = "#888888"; // Remaining letter
+          ctx.font = "14px monospace";
+        }
+
+        ctx.fillText(
+          char,
+          startX + offset + letterWidth / 2,
+          this.y - this.radius - 9,
+        );
+        offset += letterWidth;
+      }
+
+      ctx.restore();
+    }
+  }
+
+  class Projectile {
+    x: number;
+    y: number;
+    tx: number;
+    ty: number;
+    speed: number;
+    angle: number;
+    active: boolean;
+
+    constructor(x: number, y: number, tx: number, ty: number) {
+      this.x = x;
+      this.y = y;
+      this.tx = tx;
+      this.ty = ty;
+      this.speed = 18;
+
+      const dx = tx - x;
+      const dy = ty - y;
+      this.angle = Math.atan2(dy, dx);
+      this.active = true;
+    }
+
+    update() {
+      const dx = this.tx - this.x;
+      const dy = this.ty - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < this.speed) {
+        this.x = this.tx;
+        this.y = this.ty;
+        this.active = false;
+      } else {
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed;
+      }
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+      ctx.save();
+      ctx.strokeStyle = "#00dfd8";
+      ctx.shadowColor = "#00dfd8";
+      ctx.shadowBlur = 8;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(
+        this.x - Math.cos(this.angle) * 15,
+        this.y - Math.sin(this.angle) * 15,
+      );
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  class Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    color: string;
+    life: number;
+    maxLife: number;
+
+    constructor(x: number, y: number, color: string) {
+      this.x = x;
+      this.y = y;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 4 + 1;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      this.color = color;
+      this.life = 1;
+      this.maxLife = Math.random() * 30 + 20;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life++;
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+      const ratio = 1 - this.life / this.maxLife;
+      ctx.save();
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = ratio;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 2 * ratio, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // State Variables
+  let canvas: HTMLCanvasElement;
+  let ctx: CanvasRenderingContext2D;
+
+  // ------------------------------
+  // SFX (WebAudio generated)
+  // ------------------------------
+  type SfxName = "laser" | "enemyBlast" | "playerHit" | "gameOver" | "keyboard";
+
+  let audioCtx: AudioContext | null = null;
+  let sfxEnabled = true;
+
+  // Keyboard typing SFX (soft click)
+  let keyboardSfxEnabled = true;
+  let keyboardSfxVolume = 0.18; // keep quiet by default
+
+  // prevent sound spam/node buildup
+  const SFX_COOLDOWNS_MS: Record<SfxName, number> = {
+    laser: 40,
+    enemyBlast: 120,
+    playerHit: 160,
+    gameOver: 1000,
+    keyboard: 22,
+  };
+  const lastSfxAt: Record<SfxName, number> = {
+    laser: 0,
+    enemyBlast: 0,
+    playerHit: 0,
+    gameOver: 0,
+    keyboard: 0,
+  };
+
+  function ensureAudio() {
+    if (!sfxEnabled) return;
+    if (audioCtx) return;
+
+    const Ctx = (window.AudioContext || (window as any).webkitAudioContext) as
+      | typeof AudioContext
+      | undefined;
+    if (!Ctx) return;
+
+    audioCtx = new Ctx();
+  }
+
+  function playTone({
+    freq,
+    durationMs,
+    type = "square",
+    gain = 0.04,
+    detune = 0,
+    filterFreq,
+  }: {
+    freq: number;
+    durationMs: number;
+    type?: OscillatorType;
+    gain?: number;
+    detune?: number;
+    filterFreq?: number;
+  }) {
+    if (!audioCtx) return;
+
+    const now = audioCtx.currentTime;
+
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+
+    osc.type = type;
+    osc.frequency.value = freq;
+    osc.detune.value = detune;
+
+    let out: AudioNode = g;
+    if (filterFreq) {
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = filterFreq;
+      osc.connect(filter);
+      filter.connect(g);
+    } else {
+      osc.connect(g);
+    }
+
+    g.gain.value = 0;
+    // quick envelope
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(gain, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + durationMs / 1000);
+
+    osc.start(now);
+    osc.stop(now + durationMs / 1000 + 0.02);
+
+    out.connect(audioCtx.destination);
+  }
+
+  function playNoiseBurst({
+    durationMs,
+    gain = 0.04,
+    filterFreq = 800,
+  }: {
+    durationMs: number;
+    gain?: number;
+    filterFreq?: number;
+  }) {
+    if (!audioCtx) return;
+
+    const now = audioCtx.currentTime;
+    const bufferSize = Math.max(
+      1,
+      Math.floor(audioCtx.sampleRate * (durationMs / 1000)),
+    );
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+      // white noise
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.value = filterFreq;
+    filter.Q.value = 1.4;
+
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(gain, now + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + durationMs / 1000);
+
+    source.connect(filter);
+    filter.connect(g);
+    g.connect(audioCtx.destination);
+
+    source.start(now);
+    source.stop(now + durationMs / 1000 + 0.02);
+  }
+
+  function canPlay(name: SfxName) {
+    const t = performance.now();
+    if (t - lastSfxAt[name] < SFX_COOLDOWNS_MS[name]) return false;
+    lastSfxAt[name] = t;
+    return true;
+  }
+
+  function playLaserSfx() {
+    if (!canPlay("laser")) return;
+    if (!audioCtx) return;
+
+    // a sharp “pew”
+    playTone({
+      freq: 820 + Math.random() * 90,
+      durationMs: 55,
+      type: "square",
+      gain: 0.03,
+      filterFreq: 1400,
+    });
+    playTone({
+      freq: 1700 + Math.random() * 120,
+      durationMs: 30,
+      type: "sine",
+      gain: 0.02,
+      filterFreq: 2200,
+    });
+  }
+
+  function playEnemyBlastSfx() {
+    if (!canPlay("enemyBlast")) return;
+    if (!audioCtx) return;
+
+    // noisy boom + descending tone
+    playNoiseBurst({ durationMs: 140, gain: 0.06, filterFreq: 420 });
+    playTone({
+      freq: 190 + Math.random() * 30,
+      durationMs: 120,
+      type: "sawtooth",
+      gain: 0.03,
+      filterFreq: 500,
+    });
+    playTone({
+      freq: 120 + Math.random() * 20,
+      durationMs: 90,
+      type: "triangle",
+      gain: 0.02,
+      filterFreq: 300,
+    });
+  }
+
+  function playPlayerHitSfx() {
+    if (!canPlay("playerHit")) return;
+    if (!audioCtx) return;
+
+    // thud/crack
+    playNoiseBurst({ durationMs: 90, gain: 0.05, filterFreq: 260 });
+    playTone({
+      freq: 160 + Math.random() * 30,
+      durationMs: 90,
+      type: "square",
+      gain: 0.02,
+      filterFreq: 420,
+    });
+  }
+
+  function playGameOverSfx() {
+    if (!canPlay("gameOver")) return;
+    if (!audioCtx) return;
+
+    // quick descending alarm
+    playTone({
+      freq: 520,
+      durationMs: 120,
+      type: "square",
+      gain: 0.02,
+      filterFreq: 900,
+    });
+    setTimeout(() => {
+      playTone({
+        freq: 320,
+        durationMs: 160,
+        type: "square",
+        gain: 0.02,
+        filterFreq: 700,
+      });
+    }, 60);
+  }
+
+  function playKeyboardSfx({ isDelete = false }: { isDelete?: boolean } = {}) {
+    if (!keyboardSfxEnabled) return;
+    if (!canPlay("keyboard")) return;
+    if (!audioCtx) return;
+
+    // Very soft "key click": short + low gain + lowpass filter
+    const baseGain = Math.max(0, Math.min(1, keyboardSfxVolume));
+    const gain = 0.006 + baseGain * 0.03; // quiet and capped
+
+    if (isDelete) {
+      playTone({
+        freq: 120 + Math.random() * 40,
+        durationMs: 26,
+        type: "triangle",
+        gain,
+        filterFreq: 650,
+      });
+      return;
+    }
+
+    // Forward typing click
+    playTone({
+      freq: 220 + Math.random() * 90,
+      durationMs: 18,
+      type: "square",
+      gain,
+      filterFreq: 900,
+      detune: (Math.random() - 0.5) * 30,
+    });
+  }
+
+  let player: Player | null = null;
+
+  let enemies: Enemy[] = [];
+  let projectiles: Projectile[] = [];
+  let particles: Particle[] = [];
+
+  let score = 0;
+  let multiplier = 1.0;
+  let level = 1;
+  let streak = 0;
+  let gameActive = false;
+  let targetEnemy: Enemy | null = null;
+
+  let spawnTimer = 0;
+  let spawnInterval = 120; // in frames, drops on higher level
+  let speedMultiplier = 1.0;
+
+  // Screen shake variables
+  let shakeIntensity = 0;
+
+  // Grid offsets for scrolling
+  let gridOffset = 0;
+
+  // Keyboards capture focus handlers
+  const kbdInput = document.getElementById(
+    "game-keyboard-capture",
+  ) as HTMLInputElement;
+
+  // UI elements
+  const scoreUI = document.getElementById("game-score");
+  const multUI = document.getElementById("game-multiplier");
+  const levelUI = document.getElementById("game-level");
+
+  // Splash elements
+  const startOverlay = document.getElementById("game-start-overlay");
+  const gameOverOverlay = document.getElementById("game-over-overlay");
+  const pbScoreUI = document.getElementById("pb-score");
+  const pbPlayedUI = document.getElementById("pb-played");
+
+  // Initialize Event hooks
+  window.addEventListener("load", () => {
+    initGameEngine();
+  });
+
+  // Handle manual reload/Astro loading delays
+  setTimeout(() => {
+    if (!canvas) initGameEngine();
+  }, 100);
+
+  function initGameEngine() {
+    canvas = document.getElementById("game-canvas") as HTMLCanvasElement;
+    if (!canvas) return;
+
+    ctx = canvas.getContext("2d")!;
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    // Setup input listeners
+    document.addEventListener("click", () => {
+      if (gameActive) kbdInput.focus();
+    });
+
+    // Keyboard SFX UI controls (if present)
+    const keyboardSfxToggle = document.getElementById(
+      "keyboard-sfx-toggle",
+    ) as HTMLInputElement | null;
+    const keyboardSfxVolumeEl = document.getElementById(
+      "keyboard-sfx-volume",
+    ) as HTMLInputElement | null;
+
+    if (keyboardSfxToggle) {
+      keyboardSfxToggle.checked = keyboardSfxEnabled;
+      keyboardSfxToggle.addEventListener("change", () => {
+        keyboardSfxEnabled = keyboardSfxToggle.checked;
+      });
+    }
+
+    if (keyboardSfxVolumeEl) {
+      keyboardSfxVolumeEl.value = String(Math.round(keyboardSfxVolume * 100));
+      keyboardSfxVolumeEl.addEventListener("input", () => {
+        // slider is 0..100 => volume 0..0.30
+        const v = Number(keyboardSfxVolumeEl.value);
+        keyboardSfxVolume = Math.max(0, Math.min(0.3, v / 100));
+      });
+    }
+
+    kbdInput.addEventListener("input", processInput as EventListener);
+    kbdInput.addEventListener("keydown", (e: KeyboardEvent) => {
+      // Prevent backspace scrolling or browser keys
+      if (e.key === "Backspace") {
+        e.preventDefault();
+      }
+    });
+
+    // Load static local records
+    loadGamePB();
+
+    // Start Button Actions
+    document.getElementById("start-game-btn")?.addEventListener("click", () => {
+      startGame();
+    });
+    document
+      .getElementById("restart-game-btn")
+      ?.addEventListener("click", () => {
+        startGame();
+      });
+
+    // Spacebar start trigger
+    window.addEventListener("keydown", (e: KeyboardEvent) => {
+      if (
+        e.key === " " &&
+        !gameActive &&
+        startOverlay &&
+        !startOverlay.classList.contains("hidden")
+      ) {
+        e.preventDefault();
+        startGame();
+      }
+    });
+
+    // Kickoff empty loop to show star background prior to loading
+    loop();
+  }
+
+  function resizeCanvas() {
+    if (!canvas) return;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function loadGamePB() {
+    const record = JSON.parse(
+      localStorage.getItem("spaceship-game-record") ||
+        '{"score": 0, "played": 0}',
+    );
+    if (pbScoreUI) pbScoreUI.textContent = record.score.toLocaleString();
+    if (pbPlayedUI) pbPlayedUI.textContent = record.played.toString();
+  }
+
+  function saveGamePB(finalScore: number) {
+    const record = JSON.parse(
+      localStorage.getItem("spaceship-game-record") ||
+        '{"score": 0, "played": 0}',
+    );
+    record.played += 1;
+    if (finalScore > record.score) {
+      record.score = finalScore;
+    }
+    localStorage.setItem("spaceship-game-record", JSON.stringify(record));
+    loadGamePB();
+  }
+
+  function updateShieldUI(shield: number) {
+    for (let i = 1; i <= 3; i++) {
+      const el = document.getElementById(`shield-bar-${i}`);
+      if (el) {
+        if (i <= shield) {
+          el.className =
+            "w-4 h-2.5 bg-cyan border border-cyan/30 rounded-sm transition-all duration-150";
+        } else {
+          el.className =
+            "w-4 h-2.5 bg-transparent border border-white/20 rounded-sm transition-all duration-150";
+        }
+      }
+    }
+  }
+
+  function startGame() {
+    // Hide menus
+    startOverlay?.classList.add("hidden");
+    gameOverOverlay?.classList.add("hidden");
+
+    // Reset values
+    score = 0;
+    multiplier = 1.0;
+    level = 1;
+    streak = 0;
+    enemies = [];
+    projectiles = [];
+    particles = [];
+    targetEnemy = null;
+    speedMultiplier = 1.0;
+    spawnInterval = 120;
+    spawnTimer = 0;
+    shakeIntensity = 0;
+
+    // Reset Player
+    player = new Player(canvas.width / 2, canvas.height - 80);
+    updateShieldUI(player.shield);
+
+    // Update UI
+    if (scoreUI) scoreUI.textContent = "000,000";
+    if (multUI) multUI.textContent = "1.0x";
+    if (levelUI) levelUI.textContent = "01";
+
+    gameActive = true;
+    kbdInput.value = "";
+    kbdInput.focus();
+
+    // Spawn initial enemy quickly
+    spawnEnemy();
+  }
+
+  function endGame() {
+    gameActive = false;
+
+    playGameOverSfx();
+
+    // Save to Local Storage
+    saveGamePB(score);
+
+    // Show Game Over UI
+    const finalScoreEl = document.getElementById("final-score");
+    const finalLevelEl = document.getElementById("final-level");
+    if (finalScoreEl) finalScoreEl.textContent = score.toLocaleString();
+    if (finalLevelEl) finalLevelEl.textContent = level.toString();
+
+    gameOverOverlay?.classList.remove("hidden");
+  }
+
+  function spawnEnemy() {
+    // Pick random word
+    const word = GAME_WORDS[Math.floor(Math.random() * GAME_WORDS.length)];
+    // Random position across top width
+    const padding = 100;
+    const x = padding + Math.random() * (canvas.width - padding * 2);
+    const y = -40;
+
+    enemies.push(new Enemy(x, y, word, speedMultiplier));
+  }
+
+  // Core typing captures
+  function processInput(e: Event) {
+    ensureAudio();
+
+    if (!gameActive || !player) return;
+
+    const val = kbdInput.value;
+    kbdInput.value = ""; // Reset immediate capture
+
+    if (val.length === 0) return;
+
+    const typedChar = val[val.length - 1]; // Get last key
+
+    // Detect delete vs forward typing best-effort (browser-dependent):
+    // - Some browsers provide InputEvent.inputType
+    const inputAny = e as any;
+    const inputType = inputAny?.inputType as string | undefined;
+    const isDelete = inputType === "deleteContentBackward";
+
+    playKeyboardSfx({ isDelete });
+
+    // If we don't have a targeted enemy, search for one starting with typedChar
+    if (!targetEnemy) {
+      // Find closest enemy whose word starts with typedChar
+      let closestEnemy: Enemy | null = null;
+      let minDist = Infinity;
+
+      enemies.forEach((enemy) => {
+        if (enemy.word[0] === typedChar && enemy.y > 0) {
+          const dy = enemy.y - player!.y;
+          const dx = enemy.x - player!.x;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < minDist) {
+            minDist = d;
+            closestEnemy = enemy;
+          }
+        }
+      });
+
+      if (closestEnemy) {
+        // Typescript sometimes infers `closestEnemy` as `never` due to the inline script.
+        (closestEnemy as any).typedLength = 1;
+        targetEnemy = closestEnemy;
+
+        // Arm audio on first gameplay gesture
+        ensureAudio();
+
+        streak++;
+        updateMultiplier();
+
+        // Fire Laser!
+        fireLaserAt(targetEnemy);
+        playLaserSfx();
+      } else {
+        // Typo penalty (No target found starting with that letter)
+        streak = 0;
+        updateMultiplier();
+        player.damage(shakeScreen);
+      }
+    } else {
+      // We are locked onto targetEnemy
+      const expectedChar = targetEnemy.word[targetEnemy.typedLength];
+
+      if (typedChar === expectedChar) {
+        targetEnemy.typedLength++;
+        streak++;
+        updateMultiplier();
+
+        // Fire Laser!
+        fireLaserAt(targetEnemy);
+        playLaserSfx();
+
+        // Check if word is completed
+        if (targetEnemy.typedLength >= targetEnemy.word.length) {
+          // Explode enemy
+          createExplosion(targetEnemy.x, targetEnemy.y, "#7928ca", 20); // Purple shockwaves
+          createExplosion(targetEnemy.x, targetEnemy.y, "#50e3c2", 15); // Mint details
+          playEnemyBlastSfx();
+
+          // Add Score
+          score += Math.round(targetEnemy.scoreVal * multiplier);
+          if (scoreUI) scoreUI.textContent = padScore(score);
+
+          // Remove enemy from pool
+          enemies = enemies.filter((e) => e !== targetEnemy);
+          targetEnemy = null;
+
+          // Check if we scale difficulty
+          checkDifficultyScaling();
+        }
+      } else {
+        // Typo penalty (Incorrect key pressed for locked target)
+        streak = 0;
+        updateMultiplier();
+        player.damage(shakeScreen);
+      }
+    }
+  }
+
+  function fireLaserAt(enemy: Enemy) {
+    if (!player) return;
+    // Rotate ship direction slightly toward target
+    const dx = enemy.x - player.x;
+    const dy = enemy.y - player.y;
+    player.targetAngle = Math.atan2(dy, dx);
+
+    // Spawn Projectile from ship nose
+    const noseX =
+      player.x + Math.cos(player.currentAngle) * (player.height / 2);
+    const noseY =
+      player.y + Math.sin(player.currentAngle) * (player.height / 2);
+
+    projectiles.push(new Projectile(noseX, noseY, enemy.x, enemy.y));
+  }
+
+  function updateMultiplier() {
+    multiplier = 1.0 + Math.min(4.0, Math.floor(streak / 5) * 0.5);
+    if (multUI) multUI.textContent = `${multiplier.toFixed(1)}x`;
+  }
+
+  function checkDifficultyScaling() {
+    // Increase level every 4000 points
+    const newLevel = 1 + Math.floor(score / 4000);
+    if (newLevel !== level) {
+      level = newLevel;
+      if (levelUI)
+        levelUI.textContent = level < 10 ? `0${level}` : level.toString();
+
+      // Speed up enemies and spawn rates
+      speedMultiplier = 1.0 + (level - 1) * 0.18;
+      spawnInterval = Math.max(45, 120 - (level - 1) * 12);
+
+      // Level up flash animation
+      createExplosion(canvas.width / 2, canvas.height / 2, "#ff0080", 30);
+    }
+  }
+
+  function padScore(val: number) {
+    return val
+      .toString()
+      .padStart(6, "0")
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  function shakeScreen() {
+    shakeIntensity = 12;
+  }
+
+  function createExplosion(x: number, y: number, color: string, count: number) {
+    for (let i = 0; i < count; i++) {
+      particles.push(new Particle(x, y, color));
+    }
+  }
+
+  // Main Loop
+  function loop() {
+    requestAnimationFrame(loop);
+
+    if (!canvas || !ctx) return;
+
+    // Apply Screen Shake transform if needed
+    ctx.save();
+    if (shakeIntensity > 0) {
+      const dx = (Math.random() - 0.5) * shakeIntensity;
+      const dy = (Math.random() - 0.5) * shakeIntensity;
+      ctx.translate(dx, dy);
+      shakeIntensity *= 0.9; // Decay shake
+      if (shakeIntensity < 0.2) shakeIntensity = 0;
+    }
+
+    // Clear Canvas
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw grid mesh scrolling lines (Arcade vibe)
+    drawScrollingGrid();
+
+    if (gameActive && player) {
+      // Interpolate player angle smoothly toward targeted angle
+      const angleDiff = player.targetAngle - player.currentAngle;
+      player.currentAngle += angleDiff * 0.25;
+
+      // Update and Draw Projectiles
+      projectiles.forEach((p) => p.update());
+      projectiles = projectiles.filter((p) => p.active);
+      projectiles.forEach((p) => p.draw(ctx));
+
+      // Spawn new enemies
+      spawnTimer++;
+      if (spawnTimer >= spawnInterval) {
+        spawnTimer = 0;
+        spawnEnemy();
+      }
+
+      // Update and Draw Enemies
+      enemies.forEach((enemy) => {
+        enemy.update();
+
+        // Check if enemy breaches bottom shield boundary
+        const activePlayer = player!;
+        if (enemy.y > activePlayer.y - 10) {
+          activePlayer.damage(shakeScreen);
+          // Explode it and clear it
+          createExplosion(enemy.x, enemy.y, "#ff4d4d", 20);
+          enemies = enemies.filter((e) => e !== enemy);
+          if (targetEnemy === enemy) targetEnemy = null;
+        }
+      });
+
+      // Draw enemies
+      enemies.forEach((enemy) => {
+        enemy.draw(ctx, targetEnemy === enemy);
+      });
+
+      // Draw Player
+      player.draw(ctx);
+    }
+
+    // Update and Draw Particles
+    particles.forEach((p) => {
+      p.update();
+      p.draw(ctx);
+    });
+    particles = particles.filter((p) => p.life < p.maxLife);
+
+    ctx.restore(); // Restore shake transforms
+  }
+
+  function drawScrollingGrid() {
+    ctx.save();
+    ctx.strokeStyle = "rgba(235, 235, 235, 0.04)"; // Subtle hairline white
+    ctx.lineWidth = 1;
+
+    // Scrolling speed matches current speed scaling
+    gridOffset = (gridOffset + (gameActive ? speedMultiplier * 1.5 : 0.5)) % 40;
+
+    // Draw vertical lines
+    const colWidth = 40;
+    for (let x = 0; x < canvas.width; x += colWidth) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+
+    // Draw scrolling horizontal lines
+    for (let y = gridOffset; y < canvas.height; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+</script>

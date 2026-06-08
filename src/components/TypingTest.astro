@@ -1,0 +1,961 @@
+---
+// src/components/TypingTest.astro
+---
+<div class="w-full flex flex-col items-center">
+  <!-- Controls Panel (Vercel tab-ghost style) -->
+  <div id="test-config" class="w-full max-w-3xl mb-8 flex flex-wrap gap-4 items-center justify-between p-3 bg-canvas border border-hairline rounded-lg transition-colors duration-200">
+    <div class="flex items-center space-x-2">
+      <!-- Mode Selection -->
+      <button class="config-btn active px-3 py-1 text-xs font-medium rounded-full bg-canvas-soft-2 text-ink border border-hairline hover:text-ink cursor-pointer" data-type="mode" data-value="time">time</button>
+      <button class="config-btn px-3 py-1 text-xs font-medium rounded-full text-mute hover:text-ink cursor-pointer" data-type="mode" data-value="words">words</button>
+    </div>
+
+    <!-- Divider -->
+    <div class="h-4 w-px bg-hairline hidden sm:block"></div>
+
+    <!-- Sub-options (Dynamic based on selected mode) -->
+    <div id="sub-options-time" class="flex items-center space-x-2">
+      <button class="config-btn active px-3 py-1 text-xs font-medium rounded-full bg-canvas-soft-2 text-ink border border-hairline cursor-pointer" data-type="time" data-value="15">15</button>
+      <button class="config-btn px-3 py-1 text-xs font-medium rounded-full text-mute hover:text-ink cursor-pointer" data-type="time" data-value="30">30</button>
+      <button class="config-btn px-3 py-1 text-xs font-medium rounded-full text-mute hover:text-ink cursor-pointer" data-type="time" data-value="60">60</button>
+    </div>
+
+    <div id="sub-options-words" class="hidden flex items-center space-x-2">
+      <button class="config-btn px-3 py-1 text-xs font-medium rounded-full text-mute hover:text-ink cursor-pointer" data-type="words" data-value="10">10</button>
+      <button class="config-btn active px-3 py-1 text-xs font-medium rounded-full bg-canvas-soft-2 text-ink border border-hairline cursor-pointer" data-type="words" data-value="25">25</button>
+      <button class="config-btn px-3 py-1 text-xs font-medium rounded-full text-mute hover:text-ink cursor-pointer" data-type="words" data-value="50">50</button>
+    </div>
+
+    <!-- Divider -->
+    <div class="h-4 w-px bg-hairline"></div>
+
+    <!-- Word Bank Selection -->
+    <div class="flex items-center space-x-2">
+      <button class="config-btn active px-3 py-1 text-xs font-medium rounded-full bg-canvas-soft-2 text-ink border border-hairline cursor-pointer" data-type="bank" data-value="english">english</button>
+      <button class="config-btn px-3 py-1 text-xs font-medium rounded-full text-mute hover:text-ink cursor-pointer" data-type="bank" data-value="code">code terms</button>
+    </div>
+  </div>
+
+  <!-- Distraction-Free Typing Area -->
+  <div 
+    id="typing-container" 
+    class="w-full max-w-3xl min-h-[160px] relative p-6 bg-canvas border border-hairline rounded-lg shadow-vercel-sm flex flex-col justify-between cursor-text focus-within:ring-2 focus-within:ring-link/30 transition-all duration-200"
+  >
+    <!-- Live Stats / Timer -->
+    <div class="flex items-center justify-between mb-4 font-mono text-sm">
+      <div id="live-timer" class="text-link font-bold text-lg">30</div>
+      <div id="live-stats" class="text-mute flex space-x-4">
+        <div>wpm: <span id="live-wpm" class="text-ink">0</span></div>
+        <div>acc: <span id="live-acc" class="text-ink">100</span>%</div>
+      </div>
+    </div>
+
+    <!-- Hidden Input Field for capture -->
+    <input 
+      type="text" 
+      id="keyboard-input" 
+      class="absolute opacity-0 pointer-events-none" 
+      autocomplete="off" 
+      autocapitalize="off" 
+      autocorrect="off" 
+      spellcheck="false" 
+    />
+
+    <!-- Words Display (Monkeytype structure) -->
+    <div id="words-wrapper" class="relative text-xl md:text-2xl font-mono leading-relaxed select-none overflow-hidden h-[96px] text-mute">
+      <!-- Cursor Caret -->
+      <div 
+        id="caret" 
+        class="absolute w-[2px] h-[26px] bg-link rounded-full animate-caret pointer-events-none transition-all duration-75"
+        style="top: 6px; left: 0px;"
+      ></div>
+      <div id="words-container" class="flex flex-wrap items-start content-start relative top-0 gap-x-[12px] gap-y-[10px]">
+        <!-- Dynamic words will be loaded here -->
+      </div>
+    </div>
+
+    <!-- Unfocused Alert (Overlay when input loses focus) -->
+    <div 
+      id="focus-alert" 
+      class="absolute inset-0 bg-canvas/80 backdrop-blur-sm flex items-center justify-center rounded-lg transition-opacity duration-200 cursor-pointer pointer-events-none opacity-0"
+    >
+      <div class="text-center">
+        <p class="text-ink font-semibold mb-1">Click to Focus</p>
+        <p class="text-xs text-mute font-mono">Press any key or click here to resume typing</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restart Hint -->
+  <div class="mt-6 flex flex-col items-center">
+    <button 
+      id="restart-btn" 
+      class="px-4 py-2 border border-hairline hover:bg-canvas rounded-full text-xs font-mono text-body hover:text-ink cursor-pointer transition-all duration-150 flex items-center space-x-2"
+    >
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12" />
+      </svg>
+      <span>Restart test</span>
+    </button>
+    <p class="text-[10px] text-mute font-mono mt-2 hidden sm:block">Tip: Press <kbd class="px-1.5 py-0.5 bg-canvas-soft-2 border border-hairline rounded text-[9px] font-sans">Tab</kbd> + <kbd class="px-1.5 py-0.5 bg-canvas-soft-2 border border-hairline rounded text-[9px] font-sans">Enter</kbd> to restart quickly</p>
+  </div>
+
+  <!-- Post-Test Summary Screen (Hidden by default) -->
+  <div 
+    id="summary-container" 
+    class="w-full max-w-3xl mt-8 p-6 bg-canvas border border-hairline rounded-lg shadow-vercel-md hidden animate-fade-in"
+  >
+    <h2 class="text-xl font-semibold text-ink mb-6 tracking-tight">Test Results.</h2>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+      <div class="p-4 bg-canvas-soft-2 rounded-lg border border-hairline">
+        <div class="text-xs font-mono text-mute mb-1">WPM (net)</div>
+        <div id="summary-wpm" class="text-3xl md:text-4xl font-bold text-link">0</div>
+      </div>
+      <div class="p-4 bg-canvas-soft-2 rounded-lg border border-hairline">
+        <div class="text-xs font-mono text-mute mb-1">Accuracy</div>
+        <div id="summary-acc" class="text-3xl md:text-4xl font-bold text-ink">0%</div>
+      </div>
+      <div class="p-4 bg-canvas-soft-2 rounded-lg border border-hairline">
+        <div class="text-xs font-mono text-mute mb-1">Raw WPM</div>
+        <div id="summary-raw" class="text-3xl md:text-4xl font-bold text-body">0</div>
+      </div>
+      <div class="p-4 bg-canvas-soft-2 rounded-lg border border-hairline">
+        <div class="text-xs font-mono text-mute mb-1">Characters</div>
+        <div id="summary-chars" class="text-sm font-mono text-body flex flex-col justify-center h-10">
+          <div><span class="text-link">correct:</span> <span id="chars-correct">0</span></div>
+          <div><span class="text-error">errors:</span> <span id="chars-error">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Chart Canvas -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-semibold text-body tracking-tight">Speed Curve (WPM over time)</h3>
+        <span id="chart-mode-label" class="text-[10px] font-mono text-mute">time test (30s)</span>
+      </div>
+      <div class="w-full h-[180px] border border-hairline rounded bg-canvas-soft-2 p-2 relative">
+        <canvas id="results-chart" class="w-full h-full"></canvas>
+      </div>
+    </div>
+
+    <!-- History / Overall Averages -->
+    <div class="pt-6 border-t border-hairline">
+      <h3 class="text-sm font-semibold text-body tracking-tight mb-4">Historical Statistics</h3>
+      <div class="grid grid-cols-3 gap-4 text-center">
+        <div class="py-2 px-4 border border-hairline rounded">
+          <div class="text-[10px] font-mono text-mute uppercase">Completed</div>
+          <div id="stats-completed" class="text-lg font-bold text-ink">-</div>
+        </div>
+        <div class="py-2 px-4 border border-hairline rounded">
+          <div class="text-[10px] font-mono text-mute uppercase">Avg WPM</div>
+          <div id="stats-avg-wpm" class="text-lg font-bold text-ink">-</div>
+        </div>
+        <div class="py-2 px-4 border border-hairline rounded">
+          <div class="text-[10px] font-mono text-mute uppercase">Best WPM</div>
+          <div id="stats-best-wpm" class="text-lg font-bold text-link">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next Actions -->
+    <div class="mt-6 flex justify-end space-x-3">
+      <button 
+        id="clear-stats-btn"
+        class="px-4 py-2 border border-error/20 hover:bg-error-soft text-error rounded-sm text-xs font-medium cursor-pointer transition-colors"
+      >
+        Reset History
+      </button>
+      <button 
+        id="summary-restart-btn"
+        class="px-4 py-2 bg-primary text-on-primary rounded-sm text-xs font-semibold hover:opacity-90 cursor-pointer transition-opacity"
+      >
+        Try Again
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Dynamic Word Lists
+  const WORDS_DB = {
+    english: [
+      "the", "be", "to", "of", "and", "a", "in", "that", "have", "it", "for", "not", "on", "with", "he", "as", "you", 
+      "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", 
+      "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", 
+      "me", "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", "people", "into", "year", 
+      "your", "good", "some", "could", "them", "see", "other", "than", "then", "now", "look", "only", "come", "its", 
+      "over", "think", "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even", 
+      "new", "want", "because", "any", "these", "give", "day", "most", "us", "are", "was", "were", "been", "had", 
+      "has", "said", "were", "where", "called", "who", "why", "here", "there", "each", "many", "how", "them", "then", 
+      "more", "write", "make", "like", "time", "would", "look", "number", "people", "write", "always", "between"
+    ],
+    code: [
+      "function", "const", "let", "var", "import", "export", "return", "console", "log", "document", "window", 
+      "promise", "async", "await", "class", "extends", "constructor", "super", "interface", "public", "private", 
+      "protected", "implements", "static", "typeof", "instanceof", "try", "catch", "finally", "throw", "error", 
+      "object", "array", "string", "number", "boolean", "null", "undefined", "map", "filter", "reduce", "foreach", 
+      "find", "some", "every", "push", "pop", "shift", "unshift", "splice", "slice", "length", "keys", "values", 
+      "entries", "json", "parse", "stringify", "fetch", "response", "request", "headers", "method", "body", 
+      "query", "selector", "element", "event", "listener", "click", "submit", "keydown", "keyup", "change", 
+      "input", "focus", "blur", "require", "module", "exports", "resolve", "reject", "then", "catch", "axios", 
+      "react", "state", "effect", "ref", "context", "reducer", "memo", "callback", "component", "props", "render"
+    ]
+  };
+
+  // Test Settings
+  let currentMode = 'time'; // 'time' or 'words'
+  let currentTimeSetting = 30; // 15, 30, 60
+  let currentWordsSetting = 25; // 10, 25, 50
+  let currentBank = 'english'; // 'english', 'code'
+
+  // Test State
+  let words: string[] = [];
+  let testActive = false;
+  let testFinished = false;
+  let startTime = 0;
+  let timerId: any = null;
+  let timeRemaining = 0;
+  
+  // Stats logs (every second)
+  let wpmHistory: number[] = [];
+  let rawWpmHistory: number[] = [];
+  let timePoints: number[] = [];
+
+  // Characters Typed Counters
+  let correctChars = 0;
+  let incorrectChars = 0;
+  let extraChars = 0;
+  let missedChars = 0;
+  let totalCharsTyped = 0;
+
+  // DOM Elements
+  const typingContainer = document.getElementById('typing-container');
+  const keyboardInput = document.getElementById('keyboard-input') as HTMLInputElement;
+  const wordsContainer = document.getElementById('words-container') as HTMLElement;
+  const caret = document.getElementById('caret') as HTMLElement;
+  const focusAlert = document.getElementById('focus-alert') as HTMLElement;
+  const liveTimer = document.getElementById('live-timer') as HTMLElement;
+  const liveWpm = document.getElementById('live-wpm') as HTMLElement;
+  const liveAcc = document.getElementById('live-acc') as HTMLElement;
+  const restartBtn = document.getElementById('restart-btn') as HTMLElement;
+  
+  // Summary DOM Elements
+  const summaryContainer = document.getElementById('summary-container') as HTMLElement;
+  const summaryWpm = document.getElementById('summary-wpm') as HTMLElement;
+  const summaryAcc = document.getElementById('summary-acc') as HTMLElement;
+  const summaryRaw = document.getElementById('summary-raw') as HTMLElement;
+  const charsCorrect = document.getElementById('chars-correct') as HTMLElement;
+  const charsError = document.getElementById('chars-error') as HTMLElement;
+  const chartModeLabel = document.getElementById('chart-mode-label') as HTMLElement;
+  const summaryRestartBtn = document.getElementById('summary-restart-btn') as HTMLElement;
+  const clearStatsBtn = document.getElementById('clear-stats-btn') as HTMLElement;
+
+  // Stats DOM Elements
+  const statsCompleted = document.getElementById('stats-completed') as HTMLElement;
+  const statsAvgWpm = document.getElementById('stats-avg-wpm') as HTMLElement;
+  const statsBestWpm = document.getElementById('stats-best-wpm') as HTMLElement;
+
+  // Active Letter state pointer
+  let currentWordIdx = 0;
+  let currentLetterIdx = 0;
+
+  // --- INITIALIZATION ---
+  function init() {
+    setupConfigListeners();
+    resetTest();
+    setupInputListeners();
+    loadOverallStats();
+  }
+
+  // Set up settings toggle listeners
+  function setupConfigListeners() {
+    const configPanel = document.getElementById('test-config');
+    if (!configPanel) return;
+
+    configPanel.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (!target.classList.contains('config-btn')) return;
+
+      const type = target.getAttribute('data-type');
+      const value = target.getAttribute('data-value');
+
+      // Update button highlights
+      const siblings = target.parentNode.querySelectorAll('.config-btn');
+      siblings.forEach(sib => {
+        sib.classList.remove('active', 'bg-canvas-soft-2', 'text-ink', 'border', 'border-hairline');
+        sib.classList.add('text-mute');
+      });
+      target.classList.add('active', 'bg-canvas-soft-2', 'text-ink', 'border', 'border-hairline');
+      target.classList.remove('text-mute');
+
+      // Handle config adjustments
+      if (type === 'mode') {
+        currentMode = value;
+        const timeOptions = document.getElementById('sub-options-time');
+        const wordsOptions = document.getElementById('sub-options-words');
+        if (currentMode === 'time') {
+          timeOptions?.classList.remove('hidden');
+          wordsOptions?.classList.add('hidden');
+        } else {
+          timeOptions?.classList.add('hidden');
+          wordsOptions?.classList.remove('hidden');
+        }
+      } else if (type === 'time') {
+        currentTimeSetting = parseInt(value);
+      } else if (type === 'words') {
+        currentWordsSetting = parseInt(value);
+      } else if (type === 'bank') {
+        currentBank = value;
+      }
+
+      resetTest();
+    });
+
+    restartBtn?.addEventListener('click', () => resetTest());
+    summaryRestartBtn?.addEventListener('click', () => {
+      summaryContainer?.classList.add('hidden');
+      typingContainer?.classList.remove('hidden');
+      resetTest();
+    });
+
+    clearStatsBtn?.addEventListener('click', () => {
+      if (confirm("Are you sure you want to clear your local WPM history?")) {
+        localStorage.removeItem('typing-stats-history');
+        loadOverallStats();
+      }
+    });
+
+    // Capture theme changes to redraw chart with correct ink colors
+    window.addEventListener('theme-change', () => {
+      if (testFinished && summaryContainer && !summaryContainer.classList.contains('hidden')) {
+        drawChart();
+      }
+    });
+  }
+
+  // Reset/Create Test State
+  function resetTest() {
+    clearInterval(timerId);
+    testActive = false;
+    testFinished = false;
+    currentWordIdx = 0;
+    currentLetterIdx = 0;
+    correctChars = 0;
+    incorrectChars = 0;
+    extraChars = 0;
+    missedChars = 0;
+    totalCharsTyped = 0;
+    wpmHistory = [];
+    rawWpmHistory = [];
+    timePoints = [];
+
+    // Hide summary, show typing
+    summaryContainer?.classList.add('hidden');
+    typingContainer?.classList.remove('hidden');
+
+    keyboardInput.value = '';
+    
+    // Select Words from database
+    const db = WORDS_DB[currentBank] || WORDS_DB.english;
+    const selectedWordsList = [];
+    const targetCount = currentMode === 'time' ? 100 : currentWordsSetting; // Time mode generates a pool
+
+    for (let i = 0; i < targetCount; i++) {
+      const randWord = db[Math.floor(Math.random() * db.length)];
+      selectedWordsList.push(randWord);
+    }
+    words = selectedWordsList;
+
+    // Set Timer / Counter UI
+    if (currentMode === 'time') {
+      timeRemaining = currentTimeSetting;
+      liveTimer.textContent = timeRemaining.toString();
+    } else {
+      liveTimer.textContent = `0/${currentWordsSetting}`;
+    }
+
+    liveWpm.textContent = '0';
+    liveAcc.textContent = '100';
+
+    // Render words to DOM
+    renderWords();
+    
+    // Focus keyboard input
+    keyboardInput.focus();
+    positionCaret();
+    
+    // Scroll words container reset
+    const container = document.getElementById('words-container');
+    if (container) container.style.top = '0px';
+  }
+
+  // Render Words onto screen inside words-container
+  function renderWords() {
+    if (!wordsContainer) return;
+    wordsContainer.innerHTML = '';
+    
+    words.forEach((word, wordIdx) => {
+      const wordDiv = document.createElement('div');
+      wordDiv.className = 'word flex transition-all duration-150';
+      wordDiv.id = `word-${wordIdx}`;
+
+      for (let i = 0; i < word.length; i++) {
+        const letterSpan = document.createElement('span');
+        letterSpan.className = 'letter';
+        letterSpan.textContent = word[i];
+        wordDiv.appendChild(letterSpan);
+      }
+      wordsContainer.appendChild(wordDiv);
+    });
+  }
+
+  // Caret position recalculations
+  function positionCaret() {
+    if (!caret || !wordsContainer) return;
+    
+    const activeWord = document.getElementById(`word-${currentWordIdx}`);
+    if (!activeWord) return;
+
+    let targetLeft = activeWord.offsetLeft;
+    let targetTop = activeWord.offsetTop;
+
+    const letters = activeWord.querySelectorAll('.letter');
+    if (currentLetterIdx > 0) {
+      if (currentLetterIdx <= letters.length) {
+        const targetLetter = letters[currentLetterIdx - 1] as HTMLElement;
+        targetLeft = targetLetter.offsetLeft + targetLetter.offsetWidth;
+      } else {
+        // Extra characters positions
+        const extraLetters = activeWord.querySelectorAll('.letter-extra');
+        if (extraLetters.length > 0) {
+          const lastExtra = extraLetters[extraLetters.length - 1] as HTMLElement;
+          targetLeft = lastExtra.offsetLeft + lastExtra.offsetWidth;
+        }
+      }
+    }
+
+    caret.style.left = `${targetLeft}px`;
+    caret.style.top = `${targetTop + 4}px`;
+    caret.style.height = `${activeWord.offsetHeight - 8}px`;
+
+    // Handle container scroll offset (when active word moves to next lines)
+    const containerHeight = 96; // h-[96px]
+    const activeWordHeight = activeWord.offsetHeight;
+    
+    // If the word's top is greater than normal, shift container up
+    if (targetTop > 32) {
+      // scroll container up
+      wordsContainer.style.top = `-${targetTop - 5}px`;
+    } else {
+      wordsContainer.style.top = '0px';
+    }
+  }
+
+  // Core Typing Keypress Listeners
+  function setupInputListeners() {
+    // Typing area focus clicks
+    typingContainer?.addEventListener('click', () => {
+      keyboardInput.focus();
+    });
+
+    keyboardInput.addEventListener('focus', () => {
+      focusAlert?.classList.add('opacity-0');
+      focusAlert?.classList.add('pointer-events-none');
+    });
+
+    keyboardInput.addEventListener('blur', () => {
+      if (!testFinished) {
+        focusAlert?.classList.remove('opacity-0');
+        focusAlert?.classList.remove('pointer-events-none');
+      }
+    });
+
+    // Keyboard capture
+    keyboardInput.addEventListener('input', handleTyping);
+
+    // Tab + Enter restart hotkey listener
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        // Shift focus to restart focus
+        setTimeout(() => {
+          window.addEventListener('keydown', captureEnterRestart);
+        }, 10);
+      }
+    });
+  }
+
+  function captureEnterRestart(e) {
+    if (e.key === 'Enter') {
+      window.removeEventListener('keydown', captureEnterRestart);
+      resetTest();
+    } else {
+      window.removeEventListener('keydown', captureEnterRestart);
+    }
+  }
+
+  function handleTyping(e) {
+    if (testFinished) return;
+
+    const inputVal = keyboardInput.value;
+    keyboardInput.value = ''; // Clear for next character capture
+
+    if (!testActive && inputVal.length > 0) {
+      startTestTimer();
+    }
+
+    const targetWord = words[currentWordIdx];
+    const activeWordDiv = document.getElementById(`word-${currentWordIdx}`);
+    if (!activeWordDiv) return;
+
+    const letters = activeWordDiv.querySelectorAll('.letter');
+
+    // Handle space key -> advance word
+    if (inputVal === ' ') {
+      // If we typed nothing in the current word, do not advance
+      if (currentLetterIdx === 0) return;
+
+      // Handle missed letters in current word
+      for (let i = currentLetterIdx; i < targetWord.length; i++) {
+        letters[i].classList.add('letter-missed', 'opacity-50');
+        missedChars++;
+      }
+
+      currentWordIdx++;
+      currentLetterIdx = 0;
+
+      // If we hit the end of the word bank in words mode
+      if (currentMode === 'words' && currentWordIdx >= words.length) {
+        finishTest();
+        return;
+      }
+      
+      // If we hit end of words pool in time mode, generate more words
+      if (currentWordIdx >= words.length) {
+        const db = WORDS_DB[currentBank] || WORDS_DB.english;
+        for (let i = 0; i < 20; i++) {
+          words.push(db[Math.floor(Math.random() * db.length)]);
+        }
+        renderWords();
+      }
+
+      // Update counters in Words mode
+      if (currentMode === 'words') {
+        liveTimer.textContent = `${currentWordIdx}/${currentWordsSetting}`;
+      }
+
+      positionCaret();
+      return;
+    }
+
+    // Handle backspace or characters
+    // Since we clear the value on every stroke, we look at the characters inputted.
+    // If the user inputs characters:
+    for (let char of inputVal) {
+      totalCharsTyped++;
+
+      // If typing inside the word limit
+      if (currentLetterIdx < targetWord.length) {
+        const expectedLetter = targetWord[currentLetterIdx];
+        const currentSpan = letters[currentLetterIdx] as HTMLElement;
+
+        if (char === expectedLetter) {
+          currentSpan.classList.add('text-ink', 'font-medium');
+          currentSpan.classList.remove('opacity-50');
+          correctChars++;
+        } else {
+          currentSpan.classList.add('text-error', 'border-b-2', 'border-error/50');
+          currentSpan.classList.remove('opacity-50');
+          incorrectChars++;
+        }
+        currentLetterIdx++;
+      } else {
+        // Typing extra characters
+        extraChars++;
+        const extraSpan = document.createElement('span');
+        extraSpan.className = 'letter-extra text-error/70 border-b-2 border-error/50';
+        extraSpan.textContent = char;
+        activeWordDiv.appendChild(extraSpan);
+        currentLetterIdx++;
+      }
+    }
+
+    // Handle Backspace fallback if user hits backspace (handled through standard keydowns)
+    // Wait! Since `input` fires on deletes too, let's capture the backspace through a keydown listener on input.
+    positionCaret();
+  }
+
+  // Attach keydown directly to capture Backspaces (since input event is unreliable for backspace on some browsers)
+  document.getElementById('keyboard-input')?.addEventListener('keydown', (e) => {
+    if (testFinished) return;
+    
+    if (e.key === 'Backspace') {
+      const activeWordDiv = document.getElementById(`word-${currentWordIdx}`);
+      if (!activeWordDiv) return;
+
+      const letters = activeWordDiv.querySelectorAll('.letter');
+
+      // If at start of word, we can backspace into the previous word
+      if (currentLetterIdx === 0 && currentWordIdx > 0) {
+        // Only allow backspacing if the previous word had errors
+        const prevWordDiv = document.getElementById(`word-${currentWordIdx - 1}`);
+        const hasErrors = prevWordDiv?.querySelector('.text-error, .letter-extra, .letter-missed');
+        
+        if (hasErrors) {
+          currentWordIdx--;
+          // Calculate length of previous word typed
+          const prevLettersCount = prevWordDiv.querySelectorAll('.letter').length;
+          const prevExtraCount = prevWordDiv.querySelectorAll('.letter-extra').length;
+          currentLetterIdx = prevLettersCount + prevExtraCount;
+          
+          // Remove missed classes
+          prevWordDiv.querySelectorAll('.letter-missed').forEach(el => {
+            el.classList.remove('letter-missed', 'opacity-50');
+          });
+
+          // Reset counters mode
+          if (currentMode === 'words') {
+            liveTimer.textContent = `${currentWordIdx}/${currentWordsSetting}`;
+          }
+        }
+      } else if (currentLetterIdx > 0) {
+        // Normal character deletion
+        currentLetterIdx--;
+        const targetWord = words[currentWordIdx];
+
+        if (currentLetterIdx < targetWord.length) {
+          const currentSpan = letters[currentLetterIdx] as HTMLElement;
+          // Deduct from correct/incorrect counter
+          if (currentSpan.classList.contains('text-ink')) {
+            correctChars = Math.max(0, correctChars - 1);
+          } else if (currentSpan.classList.contains('text-error')) {
+            incorrectChars = Math.max(0, incorrectChars - 1);
+          }
+          currentSpan.className = 'letter'; // reset classes
+        } else {
+          // Remove extra character element
+          const extraSpans = activeWordDiv.querySelectorAll('.letter-extra');
+          if (extraSpans.length > 0) {
+            extraSpans[extraSpans.length - 1].remove();
+            extraChars = Math.max(0, extraChars - 1);
+          }
+        }
+      }
+      
+      positionCaret();
+      updateLiveStats();
+    }
+  });
+
+  // Start the test timer
+  function startTestTimer() {
+    testActive = true;
+    startTime = Date.now();
+
+    timerId = setInterval(() => {
+      const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+      
+      if (currentMode === 'time') {
+        timeRemaining = currentTimeSetting - timeSpent;
+        liveTimer.textContent = Math.max(0, timeRemaining).toString();
+
+        if (timeRemaining <= 0) {
+          finishTest();
+          return;
+        }
+      } else {
+        liveTimer.textContent = `${currentWordIdx}/${currentWordsSetting}`;
+      }
+
+      // Record logs for speed curve chart
+      if (timeSpent > 0) {
+        const liveWpmVal = calculateWpm(timeSpent);
+        const liveRawWpmVal = calculateRawWpm(timeSpent);
+        
+        wpmHistory.push(liveWpmVal);
+        rawWpmHistory.push(liveRawWpmVal);
+        timePoints.push(timeSpent);
+
+        // Update live WPM display
+        liveWpm.textContent = liveWpmVal.toString();
+        liveAcc.textContent = calculateAccuracy().toString();
+      }
+    }, 1000);
+  }
+
+  function updateLiveStats() {
+    const timeSpent = testActive ? Math.max(1, Math.floor((Date.now() - startTime) / 1000)) : 1;
+    liveWpm.textContent = calculateWpm(timeSpent).toString();
+    liveAcc.textContent = calculateAccuracy().toString();
+  }
+
+  function calculateWpm(timeSpentSec) {
+    if (timeSpentSec <= 0) return 0;
+    // Standard WPM = (correct characters / 5) / time_in_minutes
+    const wpm = Math.round((correctChars / 5) / (timeSpentSec / 60));
+    return isNaN(wpm) || !isFinite(wpm) ? 0 : wpm;
+  }
+
+  function calculateRawWpm(timeSpentSec) {
+    if (timeSpentSec <= 0) return 0;
+    // Raw WPM = (total characters typed / 5) / time_in_minutes
+    const wpm = Math.round((totalCharsTyped / 5) / (timeSpentSec / 60));
+    return isNaN(wpm) || !isFinite(wpm) ? 0 : wpm;
+  }
+
+  function calculateAccuracy() {
+    if (totalCharsTyped === 0) return 100;
+    const acc = Math.round((correctChars / totalCharsTyped) * 100);
+    return isNaN(acc) ? 100 : acc;
+  }
+
+  // End test and display summary
+  function finishTest() {
+    clearInterval(timerId);
+    testFinished = true;
+    testActive = false;
+
+    const finalTimeSpent = Math.max(1, Math.floor((Date.now() - startTime) / 1000));
+    const finalWpm = calculateWpm(finalTimeSpent);
+    const finalAcc = calculateAccuracy();
+    const finalRaw = calculateRawWpm(finalTimeSpent);
+
+    // Save logs to history
+    saveTestToHistory(finalWpm, finalAcc, currentMode, currentMode === 'time' ? currentTimeSetting : currentWordsSetting);
+
+    // Load static averages
+    loadOverallStats();
+
+    // Populate summary views
+    if (summaryWpm) summaryWpm.textContent = finalWpm.toString();
+    if (summaryAcc) summaryAcc.textContent = `${finalAcc}%`;
+    if (summaryRaw) summaryRaw.textContent = finalRaw.toString();
+    if (charsCorrect) charsCorrect.textContent = correctChars.toString();
+    if (charsError) charsError.textContent = (incorrectChars + extraChars + missedChars).toString();
+    if (chartModeLabel) chartModeLabel.textContent = `${currentMode} test (${currentMode === 'time' ? currentTimeSetting + 's' : currentWordsSetting + ' words'})`;
+
+    // Swap layout views
+    typingContainer?.classList.add('hidden');
+    summaryContainer?.classList.remove('hidden');
+
+    // Draw speed chart curve
+    setTimeout(() => {
+      drawChart();
+    }, 100);
+  }
+
+  // Storage Handlers
+  function saveTestToHistory(wpm, acc, mode, setting) {
+    const history = JSON.parse(localStorage.getItem('typing-stats-history') || '[]');
+    history.push({
+      date: new Date().toISOString(),
+      wpm: wpm,
+      acc: acc,
+      mode: mode,
+      setting: setting,
+      bank: currentBank
+    });
+    localStorage.setItem('typing-stats-history', JSON.stringify(history));
+  }
+
+  function loadOverallStats() {
+    const history = JSON.parse(localStorage.getItem('typing-stats-history') || '[]');
+    if (history.length === 0) {
+      if (statsCompleted) statsCompleted.textContent = '0';
+      if (statsAvgWpm) statsAvgWpm.textContent = '0';
+      if (statsBestWpm) statsBestWpm.textContent = '0';
+      return;
+    }
+
+    const count = history.length;
+    const best = Math.max(...history.map(item => item.wpm));
+    const avg = Math.round(history.reduce((sum, item) => sum + item.wpm, 0) / count);
+
+    if (statsCompleted) statsCompleted.textContent = count.toString();
+    if (statsAvgWpm) statsAvgWpm.textContent = avg.toString();
+    if (statsBestWpm) statsBestWpm.textContent = best.toString();
+  }
+
+  // Custom Chart Renderer using HTML5 Canvas (fit Vercel layout style)
+  function drawChart() {
+    const canvas = document.getElementById('results-chart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Handle high DPI screens
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const width = rect.width;
+    const height = rect.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // If history is too short, pre-populate standard line
+    let dataPoints = [...wpmHistory];
+    let rawDataPoints = [...rawWpmHistory];
+    let labels = [...timePoints];
+
+    if (dataPoints.length === 0) {
+      dataPoints = [0];
+      rawDataPoints = [0];
+      labels = [0];
+    }
+
+    // Chart margins
+    const paddingLeft = 30;
+    const paddingRight = 10;
+    const paddingTop = 20;
+    const paddingBottom = 20;
+
+    const chartWidth = width - paddingLeft - paddingRight;
+    const chartHeight = height - paddingTop - paddingBottom;
+
+    // Bounds calculations
+    const maxVal = Math.max(100, ...dataPoints, ...rawDataPoints);
+    const minVal = 0;
+
+    // Draw Grid Lines (Y axis)
+    ctx.strokeStyle = getThemeColor('--hairline');
+    ctx.lineWidth = 1;
+    ctx.font = '10px monospace';
+    ctx.fillStyle = getThemeColor('--mute');
+    ctx.textAlign = 'right';
+
+    const gridLines = 4;
+    for (let i = 0; i <= gridLines; i++) {
+      const yVal = Math.round(maxVal - (maxVal / gridLines) * i);
+      const y = paddingTop + (chartHeight / gridLines) * i;
+      
+      // Draw grid line
+      ctx.beginPath();
+      ctx.moveTo(paddingLeft, y);
+      ctx.lineTo(width - paddingRight, y);
+      ctx.stroke();
+
+      // Draw Y label
+      ctx.fillText(yVal.toString(), paddingLeft - 8, y + 3);
+    }
+
+    // Generate path points
+    const pointsCount = dataPoints.length;
+    const stepX = pointsCount > 1 ? chartWidth / (pointsCount - 1) : chartWidth;
+    
+    function getXY(val, idx) {
+      const x = paddingLeft + idx * stepX;
+      const y = paddingTop + chartHeight - ((val - minVal) / (maxVal - minVal)) * chartHeight;
+      return { x, y };
+    }
+
+    // 1. Draw Raw WPM Curve (faint dashed gray line)
+    if (pointsCount > 1) {
+      ctx.strokeStyle = getThemeColor('--mute');
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      
+      const first = getXY(rawDataPoints[0], 0);
+      ctx.moveTo(first.x, first.y);
+
+      for (let i = 1; i < pointsCount; i++) {
+        const pt = getXY(rawDataPoints[i], i);
+        ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]); // Reset dash
+    }
+
+    // 2. Draw Net WPM Curve (solid bold blue line with gradient fill underneath)
+    if (pointsCount > 1) {
+      const gradient = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + chartHeight);
+      gradient.addColorStop(0, hexToRgba(getThemeColor('--link'), 0.2));
+      gradient.addColorStop(1, hexToRgba(getThemeColor('--link'), 0.0));
+
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+
+      const first = getXY(dataPoints[0], 0);
+      ctx.moveTo(first.x, paddingTop + chartHeight); // bottom left
+      ctx.lineTo(first.x, first.y);
+
+      for (let i = 1; i < pointsCount; i++) {
+        const pt = getXY(dataPoints[i], i);
+        ctx.lineTo(pt.x, pt.y);
+      }
+
+      const last = getXY(dataPoints[pointsCount - 1], pointsCount - 1);
+      ctx.lineTo(last.x, paddingTop + chartHeight); // bottom right
+      ctx.closePath();
+      ctx.fill();
+
+      // Stroke WPM line
+      ctx.strokeStyle = getThemeColor('--link');
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(first.x, first.y);
+      for (let i = 1; i < pointsCount; i++) {
+        const pt = getXY(dataPoints[i], i);
+        ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.stroke();
+
+      // Draw points circle dots
+      ctx.fillStyle = getThemeColor('--link');
+      for (let i = 0; i < pointsCount; i++) {
+        const pt = getXY(dataPoints[i], i);
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = getThemeColor('--canvas');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    // Draw X axis label for first and last point
+    ctx.fillStyle = getThemeColor('--mute');
+    ctx.textAlign = 'center';
+    if (pointsCount > 1) {
+      ctx.fillText(`1s`, paddingLeft, height - 4);
+      ctx.fillText(`${labels[labels.length - 1]}s`, width - paddingRight, height - 4);
+    }
+  }
+
+  // Get active CSS custom property color from computed HTML style
+  function getThemeColor(variableName) {
+    // Check if stylesheet is loaded
+    const val = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+    // Default fallback mappings if CSS is not loaded yet
+    if (!val) {
+      if (variableName === '--link') return '#0070f3';
+      if (variableName === '--hairline') return '#ebebeb';
+      if (variableName === '--mute') return '#888888';
+      if (variableName === '--canvas') return '#ffffff';
+    }
+    return val;
+  }
+
+  function hexToRgba(hex, alpha) {
+    // If hex starts with #
+    if (hex.startsWith('#')) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    // If it's already an rgb/rgba from browser computed properties
+    if (hex.startsWith('rgb')) {
+      return hex.replace('rgb', 'rgba').replace(')', `, ${alpha})`);
+    }
+    return hex;
+  }
+
+  // Run on load
+  init();
+</script>

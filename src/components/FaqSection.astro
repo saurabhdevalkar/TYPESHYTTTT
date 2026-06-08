@@ -1,0 +1,77 @@
+---
+// src/components/FaqSection.astro
+const faqs = [
+  {
+    question: "What is WPM (Words Per Minute) and how is it calculated?",
+    answer: "Words Per Minute (WPM) is the standard measurement for typing speed. In a typing test online, WPM is calculated as: ((total characters typed / 5) * accuracy%) / time spent in minutes. A 'word' is standardized as 5 characters (including spaces and punctuation) to normalize differences between typing short and long words. Net WPM only counts completely correct words."
+  },
+  {
+    question: "How is typing accuracy calculated?",
+    answer: "Typing accuracy is the ratio of correct characters typed to the total number of characters typed. Hitting wrong keys, adding extra characters, or typing out-of-order letters all count as errors and reduce accuracy. High accuracy is essential because resolving typos costs valuable time."
+  },
+  {
+    question: "How long does it take to learn touch typing and build speed?",
+    answer: "Most users notice significant muscle memory improvements within 2 to 3 weeks of daily 15-minute practice. Achieving speeds of 60-80 WPM (the threshold for professional efficiency) typically takes 1 to 2 months of focused, consistent practice without looking at the keyboard."
+  },
+  {
+    question: "Why should programmers practice coding-specific typing tests?",
+    answer: "Standard prose tests only include alphanumeric words and basic punctuation. Programmers spend their days typing brackets, backticks, equal signs, CamelCase words, and indentations. Practicing code-specific typing tests builds the unique finger dexterity required to type syntactical code fast without breaking focus."
+  },
+  {
+    question: "Does TypeSHYTT.COM store any of my progress data on external servers?",
+    answer: "No. TypeSHYTT.COM is privacy-first and runs fully offline. All of your typing records, high scores in the spaceship game, and coding speed history are stored locally in your browser's localStorage. No external APIs or database connections are used."
+  }
+];
+---
+
+<section id="faq" class="w-full max-w-5xl mt-20 mb-12 transition-colors duration-200">
+  <div class="border-b border-hairline pb-4 mb-8">
+    <div class="flex items-center space-x-2 text-xs font-mono uppercase tracking-wider text-mute mb-2">
+      <span>❓</span>
+      <span>FAQ Accordion</span>
+    </div>
+    <h2 class="text-3xl font-bold tracking-tight text-ink font-sans">
+      Frequently Asked Questions.
+    </h2>
+    <p class="text-sm text-body mt-1">
+      Everything you need to know about typing tests, touch typing, and calculations.
+    </p>
+  </div>
+
+  <!-- FAQ Accordion List (Vercel details-border layout) -->
+  <div class="space-y-4">
+    {faqs.map((faq, idx) => (
+      <details 
+        class="group bg-canvas border border-hairline rounded-lg p-5 shadow-vercel-sm [&_summary::-webkit-details-marker]:hidden hover:border-hairline-strong transition-all duration-200"
+      >
+        <summary class="flex items-center justify-between cursor-pointer focus:outline-none">
+          <h3 class="text-sm md:text-base font-semibold text-ink leading-relaxed pr-4 select-none">
+            {faq.question}
+          </h3>
+          <span class="relative w-5 h-5 shrink-0">
+            <!-- Icon Toggle -->
+            <svg 
+              class="absolute inset-0 w-5 h-5 text-mute group-open:opacity-0 transition-opacity duration-200" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <svg 
+              class="absolute inset-0 w-5 h-5 text-link opacity-0 group-open:opacity-100 transition-opacity duration-200" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+            </svg>
+          </span>
+        </summary>
+        <p class="mt-4 text-xs md:text-sm text-body leading-relaxed border-t border-hairline pt-4 select-text">
+          {faq.answer}
+        </p>
+      </details>
+    ))}
+  </div>
+</section>

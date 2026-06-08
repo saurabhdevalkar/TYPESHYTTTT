@@ -1,11 +1,51 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import TypingTest from '../components/TypingTest.astro';
+import BlogSection from '../components/BlogSection.astro';
+import FaqSection from '../components/FaqSection.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// SEO Title & Description for typing test homepage
+const title = "Free Typing Test Online - Measure WPM Speed & Accuracy | TypeSHYTT.COM.";
+const description = "Test your touch typing speed and accuracy with our clean, Monkeytype-style online typing test. Zero distractions, dynamic stats curve, and 100% offline-first storage.";
 ---
 
-<Layout>
-	<Welcome />
+<Layout title={title} description={description}>
+  <!-- Background Ambient Glow Mesh (Vercel Decorative System) -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[500px] overflow-hidden pointer-events-none -z-10 opacity-30 dark:opacity-20 transition-opacity">
+    <div class="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-r from-gradient-develop-start via-gradient-preview-start to-gradient-ship-end rounded-full blur-[120px]"></div>
+  </div>
+
+  <div class="w-full flex flex-col items-center">
+    <!-- Hero / Eyebrow Branding -->
+    <div class="text-center max-w-3xl mt-4 md:mt-8 mb-12">
+      <!-- Section Eyebrow (caption-mono) -->
+      <span class="inline-flex items-center px-3 py-1 rounded-full bg-link-bg-soft text-link-deep dark:bg-link-deep/20 dark:text-link text-[11px] font-mono font-medium mb-4 uppercase tracking-wider">
+        🚀 Interactive WPM Test
+      </span>
+
+      <!-- Main Headline (sentence-case, period-terminated) -->
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-ink font-sans leading-[1.05] mb-6 select-none">
+        Test your typing speed. Build raw muscle memory.
+      </h1>
+
+      <!-- Lead paragraph -->
+      <p class="text-sm md:text-base text-body font-sans max-w-xl mx-auto leading-relaxed">
+        Experience a distraction-free, high-performance touch typing test designed for developers. Monitor key statistics and improve your keyboard efficiency.
+      </p>
+    </div>
+
+    <!-- Interactive Typing Test Module -->
+    <section class="w-full max-w-4xl flex justify-center">
+      <TypingTest />
+    </section>
+
+    <!-- Divider Line -->
+    <div class="w-full max-w-5xl h-px bg-hairline my-16 md:my-20"></div>
+
+    <!-- SEO Articles (Blog Section) -->
+    <BlogSection />
+
+    <!-- FAQ accordion area -->
+    <FaqSection />
+  </div>
 </Layout>

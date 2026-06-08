@@ -1,0 +1,86 @@
+---
+// src/components/Footer.astro
+const currentYear = new Date().getFullYear();
+---
+
+<footer
+  class="w-full bg-canvas border-t border-hairline py-12 md:py-16 px-6 md:px-8 mt-auto transition-colors duration-200 pb-20 sm:pb-16"
+>
+  <div
+    class="max-w-[1400px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-12"
+  >
+    <!-- Column 1: Product -->
+    <div class="flex flex-col space-y-3">
+      <span class="font-mono text-xs uppercase tracking-wider text-mute"
+        >Features</span
+      >
+      <a href="/" class="text-sm text-body hover:text-ink transition-colors"
+        >Typing Speed Test</a
+      >
+      <a href="/game" class="text-sm text-body hover:text-ink transition-colors"
+        >Spaceship Typing Battle</a
+      >
+      <!-- Coding Typing Test removed -->
+      <a href="#faq" class="text-sm text-body hover:text-ink transition-colors"
+        >Frequently Asked Questions</a
+      >
+    </div>
+
+    <!-- Column 2: Resources -->
+    <div class="flex flex-col space-y-3">
+      <span class="font-mono text-xs uppercase tracking-wider text-mute"
+        >Guides</span
+      >
+      <a href="#blog" class="text-sm text-body hover:text-ink transition-colors"
+        >How to Type Fast</a
+      >
+      <a href="#blog" class="text-sm text-body hover:text-ink transition-colors"
+        >Improve Touch Typing</a
+      >
+      <a href="#blog" class="text-sm text-body hover:text-ink transition-colors"
+        >Coding Workflows</a
+      >
+      <a
+        href="https://docs.astro.build"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-sm text-body hover:text-ink transition-colors"
+        >Built with Astro</a
+      >
+    </div>
+
+    <!-- Column 3: Stats -->
+    <div class="flex flex-col space-y-3">
+      <span class="font-mono text-xs uppercase tracking-wider text-mute"
+        >Keywords</span
+      >
+      <span class="text-xs text-mute font-mono">#typing-test-online</span>
+      <span class="text-xs text-mute font-mono">#learn-typing-fast</span>
+      <span class="text-xs text-mute font-mono">#wpm-test-online</span>
+      <span class="text-xs text-mute font-mono">#code-typing-test</span>
+    </div>
+
+    <!-- Column 4: About -->
+    <div class="flex flex-col space-y-3">
+      <span class="font-mono text-xs uppercase tracking-wider text-mute"
+        >About</span
+      >
+      <p class="text-sm text-body leading-relaxed">
+        TypeSHYTT.COM is a modern developer-focused typing test application. No
+        distractions, premium performance, and instant feedbacks.
+      </p>
+    </div>
+  </div>
+
+  <!-- Bottom Row -->
+  <div
+    class="max-w-[1400px] mx-auto pt-8 border-t border-hairline flex flex-col sm:flex-row items-center justify-between text-xs text-mute font-mono space-y-4 sm:space-y-0"
+  >
+    <div class="flex items-center space-x-2">
+      <span>© {currentYear} TypeSHYTT.COM. All rights reserved.</span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span>Designed with Vercel aesthetic.</span>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,6 @@
+- [ ] Update `src/pages/game.astro` to add keyboard typing SFX
+- [ ] Add UI controls: Keyboard SFX On/Off + Volume slider
+- [ ] Add a soft low-volume keyboard click sound using WebAudio
+- [ ] Trigger keyboard SFX inside `processInput` on each typed character
+- [ ] Keep cooldown to avoid sound spam
+- [ ] Quick manual test: start game, type letters, toggle sound, adjust volume

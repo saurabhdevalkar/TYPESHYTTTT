@@ -1,0 +1,163 @@
+---
+// src/components/BlogSection.astro
+const posts = [
+  {
+    title: "The Ultimate Guide to Mastering the Typing Test Online.",
+    excerpt: "Discover the strategies, tools, and routines used by world-class typists to achieve speeds exceeding 150 WPM on tests online. Learn how posture and keyboard choice impact WPM.",
+    keyword: "typing test online",
+    date: "June 8, 2026",
+    readTime: "4 min read",
+    slug: "master-typing-test-online",
+    content: `
+      <p class="mb-4">Taking a <strong>typing test online</strong> is the first step toward improving your typing skills. However, consistently achieving high speeds requires more than just raw repetition. Let's look at the proven techniques to boost your scores.</p>
+      
+      <h4 class="text-sm font-semibold font-mono text-ink mt-6 mb-2 uppercase">1. Perfect Your Home Row Placement</h4>
+      <p class="mb-4">Touch typing relies on muscle memory. Keep your fingers resting gently on the home row (A-S-D-F for the left hand, J-K-L-; for the right). Feel for the small bumps on the 'F' and 'J' keys—these are guide markers to orient your hands without looking down.</p>
+      
+      <h4 class="text-sm font-semibold font-mono text-ink mt-6 mb-2 uppercase">2. Slow Down to Speed Up</h4>
+      <p class="mb-4">Accuracy is the foundation of high speed. Every mistake you make forces you to hit backspace twice, disrupting your rhythm and slowing your WPM score drastically. Aim for 98%+ accuracy first. Speed will naturally follow as muscle memory strengthens.</p>
+      
+      <h4 class="text-sm font-semibold font-mono text-ink mt-6 mb-2 uppercase">3. Choose the Right Layout and Keyboard</h4>
+      <p class="mb-4">While standard QWERTY is universal, some typists prefer layout optimizations like Dvorak or Colemak. Pair your layout with a high-quality mechanical keyboard featuring tactile or linear switches to optimize tactile feedback and finger actuation fatigue.</p>
+    `
+  },
+  {
+    title: "How to Learn Typing Fast and Improve Muscle Memory.",
+    excerpt: "Building muscle memory is the key to learn typing fast. Learn the science of motor skills, typing drills, and the 20-minute daily habit rule for speed gains.",
+    keyword: "learn typing fast",
+    date: "June 5, 2026",
+    readTime: "5 min read",
+    slug: "learn-typing-fast-muscle-memory",
+    content: `
+      <p class="mb-4">To <strong>learn typing fast</strong>, you must train your brain to map words directly to finger movements without thinking about letter locations. This process is governed by the motor cortex and cerebellum.</p>
+      
+      <h4 class="text-sm font-semibold font-mono text-ink mt-6 mb-2 uppercase">1. Short, Focused Daily Practice</h4>
+      <p class="mb-4">Our brains consolidate motor skills during rest. Practicing for 15-20 minutes every single day is vastly superior to practicing for two hours once a week. The consistency creates long-term neural pathways.</p>
+      
+      <h4 class="text-sm font-semibold font-mono text-ink mt-6 mb-2 uppercase">2. Eliminate Keyboard Peeking</h4>
+      <p class="mb-4">Peeking at your keyboard resets your brain's muscle memory loops. If you forget where a letter is, visualize the keyboard map or feel the key shapes rather than looking. You must learn to trust your fingers.</p>
+      
+      <h4 class="text-sm font-semibold font-mono text-ink mt-6 mb-2 uppercase">3. Focus on Trigrams and Bigrams</h4>
+      <p class="mb-4">English text is filled with common letter combinations (like 'THE', 'AND', 'ING', 'ION'). By practicing these specific combinations (trigrams and bigrams), you can type entire word blocks in a single, fluid hand motion rather than letter-by-letter.</p>
+    `
+  },
+  {
+    title: "Understanding the WPM Test: Metrics that Matter.",
+    excerpt: "What does Words Per Minute actually mean? Learn the standard calculations, raw WPM vs. net WPM, and why coding tests require a completely different approach.",
+    keyword: "WPM test",
+    date: "June 2, 2026",
+    readTime: "3 min read",
+    slug: "understanding-wpm-test-metrics",
+    content: `
+      <p class="mb-4">A standard <strong>WPM test</strong> measures speed by dividing the total number of characters typed by 5, then dividing by the time spent in minutes. But how do errors affect your scores?</p>
+      
+      <h4 class="text-sm font-semibold font-mono text-ink mt-6 mb-2 uppercase">1. Raw WPM vs. Net WPM</h4>
+      <p class="mb-4"><strong>Raw WPM</strong> is your gross speed, counting every single keypress regardless of errors. <strong>Net WPM</strong> is the standard industry metric which only counts correct words. It subtracts errors, penalizing accuracy slips heavily.</p>
+      
+      <h4 class="text-sm font-semibold font-mono text-ink mt-6 mb-2 uppercase">2. The Penalty of Backspace</h4>
+      <p class="mb-4">Hitting backspace requires your fingers to move away from the home row. It wastes three keystrokes (the wrong key, backspace, and the correct key). This is why keeping accuracy above 97% is crucial for high WPM numbers.</p>
+      
+      <h4 class="text-sm font-semibold font-mono text-ink mt-6 mb-2 uppercase">3. Coding Speed vs. Prose Speed</h4>
+      <p class="mb-4">Coding involves special characters, brackets, indentation, and CamelCase. Traditional typing tests do not prepare you for this. Practice coding-specific snippet tests to build typing dexterity for programming syntax.</p>
+    `
+  }
+];
+---
+
+<section id="blog" class="w-full max-w-5xl mt-20 transition-colors duration-200">
+  <div class="border-b border-hairline pb-4 mb-8">
+    <div class="flex items-center space-x-2 text-xs font-mono uppercase tracking-wider text-mute mb-2">
+      <span class="w-1.5 h-1.5 rounded-full bg-link animate-pulse"></span>
+      <span>SEO Content & Insights</span>
+    </div>
+    <h2 class="text-3xl font-bold tracking-tight text-ink font-sans">
+      Guides to improve your typing speed.
+    </h2>
+    <p class="text-sm text-body mt-1">
+      Master touch typing, understand WPM test stats, and speed up your coding velocity.
+    </p>
+  </div>
+
+  <!-- Blog Posts Grid (Vercel card-marketing layout) -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {posts.map((post) => (
+      <div 
+        class="bg-canvas border border-hairline rounded-lg p-6 shadow-vercel-sm flex flex-col justify-between hover:shadow-vercel-md hover:border-hairline-strong transition-all duration-200 cursor-pointer"
+        onclick={`document.getElementById('post-modal-${post.slug}').classList.remove('hidden'); document.body.style.overflow = 'hidden';`}
+      >
+        <div>
+          <!-- Meta Tags -->
+          <div class="flex items-center justify-between text-xs font-mono text-mute mb-3">
+            <span class="px-2 py-0.5 bg-canvas-soft-2 border border-hairline rounded text-[10px] text-body font-semibold">{post.keyword}</span>
+            <span>{post.readTime}</span>
+          </div>
+          <!-- Title -->
+          <h3 class="text-lg font-bold text-ink mb-2 leading-snug hover:text-link transition-colors">
+            {post.title}
+          </h3>
+          <!-- Excerpt -->
+          <p class="text-xs text-body leading-relaxed mb-4">
+            {post.excerpt}
+          </p>
+        </div>
+        <!-- Date / Link -->
+        <div class="flex items-center justify-between pt-4 border-t border-hairline mt-auto text-xs text-mute font-mono">
+          <span>{post.date}</span>
+          <span class="text-link flex items-center space-x-1 group">
+            <span>Read Article</span>
+            <span class="transform group-hover:translate-x-0.5 transition-transform">→</span>
+          </span>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Article Modals (Aesthetic overlays) -->
+  {posts.map((post) => (
+    <div 
+      id={`post-modal-${post.slug}`} 
+      class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div 
+        class="bg-canvas border border-hairline rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-8 shadow-vercel-modal relative animate-fade-in text-left"
+        onclick="event.stopPropagation()"
+      >
+        <!-- Close Button -->
+        <button 
+          class="absolute top-4 right-4 p-2 rounded-full border border-hairline hover:bg-canvas-soft-2 text-mute hover:text-ink cursor-pointer transition-colors"
+          onclick={`document.getElementById('post-modal-${post.slug}').classList.add('hidden'); document.body.style.overflow = '';`}
+          aria-label="Close modal"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div class="flex items-center space-x-3 text-xs font-mono text-mute mb-4">
+          <span class="px-2 py-0.5 bg-canvas-soft-2 border border-hairline rounded text-[10px] text-body font-semibold">{post.keyword}</span>
+          <span>•</span>
+          <span>{post.date}</span>
+          <span>•</span>
+          <span>{post.readTime}</span>
+        </div>
+
+        <h3 class="text-2xl font-bold text-ink tracking-tight mb-6">
+          {post.title}
+        </h3>
+
+        <!-- Article Content -->
+        <div class="text-sm text-body leading-relaxed space-y-4 border-t border-hairline pt-6 text-justify" set:html={post.content}>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-hairline flex justify-end">
+          <button 
+            class="px-4 py-2 bg-primary text-on-primary rounded-sm text-xs font-semibold hover:opacity-90 cursor-pointer"
+            onclick={`document.getElementById('post-modal-${post.slug}').classList.add('hidden'); document.body.style.overflow = '';`}
+          >
+            Close Article
+          </button>
+        </div>
+      </div>
+    </div>
+  ))}
+</section>
